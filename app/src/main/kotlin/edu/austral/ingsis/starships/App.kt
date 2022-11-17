@@ -1,5 +1,6 @@
 package edu.austral.ingsis.starships
 
+import edu.austral.ingsis.starships.model.*
 import edu.austral.ingsis.starships.ui.*
 import edu.austral.ingsis.starships.ui.ElementColliderType.*
 import javafx.application.Application
@@ -16,32 +17,71 @@ class Starships() : Application() {
     private val imageResolver = CachedImageResolver(DefaultImageResolver())
     private val facade = ElementsViewFacade(imageResolver)
     private val keyTracker = KeyTracker()
+//    private var gameState: GameState? = null
 
     companion object {
         val STARSHIP_IMAGE_REF = ImageRef("starship", 70.0, 70.0)
     }
 
     override fun start(primaryStage: Stage) {
-        facade.elements["asteroid-1"] =
-            ElementModel("asteroid-1", 0.0, 0.0, 30.0, 40.0, 0.0, Elliptical, null)
-        facade.elements["asteroid-2"] =
-            ElementModel("asteroid-2", 100.0, 100.0, 30.0, 20.0, 90.0, Rectangular, null)
-        facade.elements["asteroid-3"] =
-            ElementModel("asteroid-3", 200.0, 200.0, 20.0, 30.0, 180.0, Elliptical, null)
 
-        val starship = ElementModel("starship", 300.0, 300.0, 40.0, 40.0, 270.0, Triangular, STARSHIP_IMAGE_REF)
-        facade.elements["starship"] = starship
+        val gameShip = Ship(
+            "starship1",
+            10,
+            Position(450.0, 450.0),
+            Vector(180.0, 0.0)
+        )
 
-        facade.timeListenable.addEventListener(TimeListener(facade.elements))
+//        val gameShip2 = Ship(
+//            "starship2",
+//            10,
+//            Position(100.0, 100.0),
+//            Vector(180.0, 0.0)
+//        )
+
+        val gameState = GameState(
+            800.0,
+            800.0,
+            listOf(gameShip)
+        )
+
+        val gameManager = GameManager(
+            gameState,
+            mapOf(
+                Pair(KeyCode.UP, ShipMovement(gameShip.getId(), KeyMovement.ACCELERATE)),
+                Pair(KeyCode.DOWN, ShipMovement(gameShip.getId(), KeyMovement.STOP)),
+                Pair(KeyCode.LEFT, ShipMovement(gameShip.getId(), KeyMovement.TURN_LEFT)),
+                Pair(KeyCode.RIGHT, ShipMovement(gameShip.getId(), KeyMovement.TURN_RIGHT)),
+                Pair(KeyCode.SPACE, ShipMovement(gameShip.getId(), KeyMovement.SHOOT))
+//                Pair(KeyCode.W, ShipMovement(gameShip2.id, KeyMovement.ACCELERATE)),
+//                Pair(KeyCode.S, ShipMovement(gameShip2.id, KeyMovement.STOP)),
+//                Pair(KeyCode.A, ShipMovement(gameShip2.id, KeyMovement.TURN_LEFT)),
+//                Pair(KeyCode.D, ShipMovement(gameShip2.id, KeyMovement.TURN_RIGHT))
+            )
+        )
+
+        val starship = ElementModel(gameShip.getId(), gameShip.getPosition().x, gameShip.getPosition().x, 40.0, 40.0, gameShip.getVector().rotationInDegrees, Triangular, STARSHIP_IMAGE_REF)
+        facade.elements[gameShip.getId()] = starship
+
+//        val starship2 = ElementModel("hola", bullet.position.x, bullet.position.x, 40.0, 40.0, bullet.vector.rotationInDegrees, Triangular, null)
+//        facade.elements["hola"] = starship2
+
+        facade.timeListenable.addEventListener(
+            TimeListener(facade.elements, facade, gameManager)
+        )
+
         facade.collisionsListenable.addEventListener(CollisionListener())
-        keyTracker.keyPressedListenable.addEventListener(KeyPressedListener(starship))
+
+        keyTracker.keyPressedListenable.addEventListener(
+            KeyPressedListener(gameManager),
+        )
 
         val scene = Scene(facade.view)
         keyTracker.scene = scene
 
         primaryStage.scene = scene
-        primaryStage.height = 800.0
-        primaryStage.width = 800.0
+        primaryStage.height = gameState.gameHeight
+        primaryStage.width = gameState.gameWidth
 
         facade.start()
         keyTracker.start()
@@ -54,23 +94,19 @@ class Starships() : Application() {
     }
 }
 
-class TimeListener(private val elements: Map<String, ElementModel>) : EventListener<TimePassed> {
-    override fun handle(event: TimePassed) {
-        elements.forEach {
-            val (key, element) = it
-            when(key) {
-                "starship" -> {}
-                "asteroid-1" -> {
-                    element.x.set(element.x.value + 0.25)
-                    element.y.set(element.y.value + 0.25)
-                }
-                else -> {
-                    element.x.set(element.x.value - 0.25)
-                    element.y.set(element.y.value - 0.25)
-                }
-            }
+class TimeListener(
+        private val elements: Map<String, ElementModel>,
+        private val facade: ElementsViewFacade,
+        private val gameManager: GameManager
+    ) : EventListener<TimePassed> {
 
-            element.rotationInDegrees.set(element.rotationInDegrees.value + 1)
+    override fun handle(event: TimePassed) {
+        gameManager.passTime(facade.elements)
+        gameManager.addElements(facade.elements)
+        gameManager.gameState.gameObjects.forEach {it ->
+            elements.getValue(it.getId()).rotationInDegrees.set(it.getVector().rotationInDegrees)
+            elements.getValue(it.getId()).x.set(it.getPosition().x)
+            elements.getValue(it.getId()).y.set(it.getPosition().y)
         }
     }
 }
@@ -82,15 +118,83 @@ class CollisionListener() : EventListener<Collision> {
 
 }
 
-class KeyPressedListener(private val starship: ElementModel): EventListener<KeyPressed> {
+class KeyPressedListener(
+        private var gameManager: GameManager,
+    ): EventListener<KeyPressed> {
     override fun handle(event: KeyPressed) {
-        when(event.key) {
-            KeyCode.UP -> starship.y.set(starship.y.value - 5 )
-            KeyCode.DOWN -> starship.y.set(starship.y.value + 5 )
-            KeyCode.LEFT -> starship.x.set(starship.x.value - 5 )
-            KeyCode.RIGHT -> starship.x.set(starship.x.value + 5 )
-            else -> {}
+        event.currentPressedKeys.forEach { key -> gameManager.moveShip(key) }
+    }
+}
+
+class GameManager(
+        var gameState: GameState,
+        private val keyMap: Map<KeyCode, ShipMovement>
+    ) {
+
+    fun moveShip(movement: KeyCode) {
+        val shipMovement = keyMap.getValue(movement)
+        gameState = gameState.moveShip(shipMovement.id, shipMovement.movement)
+    }
+
+    fun passTime(elements: MutableMap<String, ElementModel>) {
+      val newGameState = gameState.move()
+      val removedGameObjects = gameState.gameObjects.filter { obj -> !newGameState.gameObjects.any { newObj -> newObj.getId() == obj.getId()} }
+      removedGameObjects.forEach { it -> elements.remove(it.getId()) }
+      gameState = newGameState
+    }
+
+    fun addElements(elements: MutableMap<String, ElementModel>) {
+        val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
+        newElements.forEach { elements[it.getId()] = elementToUI(it) }
+    }
+
+    private fun elementToUI(element: Collidable): ElementModel {
+        return when (element) {
+            is Ship -> starshipToStarshipUI(element)
+            is Asteroid -> asteroidToAsteroidUI(element)
+            is Bullet -> bulletToBulletUI(element)
         }
     }
 
+    private fun starshipToStarshipUI(ship: Ship): ElementModel {
+        return ElementModel(
+            ship.getId(),
+            ship.getPosition().x,
+            ship.getPosition().y,
+            60.0,
+            70.0,
+            ship.getVector().rotationInDegrees,
+            ElementColliderType.Triangular,
+            ImageRef("spaceship", 60.0, 70.0)
+        )
+    }
+
+    private fun asteroidToAsteroidUI(asteroid: Asteroid): ElementModel {
+        return ElementModel(
+            asteroid.getId(),
+            asteroid.getPosition().x,
+            asteroid.getPosition().y,
+            50.0,
+            50.0,
+            asteroid.getVector().rotationInDegrees,
+            ElementColliderType.Elliptical,
+            null
+        )
+    }
+
+    private fun bulletToBulletUI(bullet: Bullet): ElementModel {
+        return ElementModel(
+            bullet.getId(),
+            bullet.getPosition().x,
+            bullet.getPosition().y,
+            10.0,
+            5.0,
+            bullet.getVector().rotationInDegrees,
+            ElementColliderType.Rectangular,
+            null
+        )
+    }
+
 }
+
+data class ShipMovement(val id: String, val movement: KeyMovement)
