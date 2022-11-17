@@ -17,7 +17,6 @@ class Starships() : Application() {
     private val imageResolver = CachedImageResolver(DefaultImageResolver())
     private val facade = ElementsViewFacade(imageResolver)
     private val keyTracker = KeyTracker()
-//    private var gameState: GameState? = null
 
     companion object {
         val STARSHIP_IMAGE_REF = ImageRef("starship", 70.0, 70.0)
@@ -27,17 +26,10 @@ class Starships() : Application() {
 
         val gameShip = Ship(
             "starship1",
-            10,
+            3,
             Position(450.0, 450.0),
-            Vector(180.0, 0.0)
+            Vector(350.0, 0.0)
         )
-
-//        val gameShip2 = Ship(
-//            "starship2",
-//            10,
-//            Position(100.0, 100.0),
-//            Vector(180.0, 0.0)
-//        )
 
         val gameState = GameState(
             800.0,
@@ -53,24 +45,17 @@ class Starships() : Application() {
                 Pair(KeyCode.LEFT, ShipMovement(gameShip.getId(), KeyMovement.TURN_LEFT)),
                 Pair(KeyCode.RIGHT, ShipMovement(gameShip.getId(), KeyMovement.TURN_RIGHT)),
                 Pair(KeyCode.SPACE, ShipMovement(gameShip.getId(), KeyMovement.SHOOT))
-//                Pair(KeyCode.W, ShipMovement(gameShip2.id, KeyMovement.ACCELERATE)),
-//                Pair(KeyCode.S, ShipMovement(gameShip2.id, KeyMovement.STOP)),
-//                Pair(KeyCode.A, ShipMovement(gameShip2.id, KeyMovement.TURN_LEFT)),
-//                Pair(KeyCode.D, ShipMovement(gameShip2.id, KeyMovement.TURN_RIGHT))
             )
         )
 
         val starship = ElementModel(gameShip.getId(), gameShip.getPosition().x, gameShip.getPosition().x, 40.0, 40.0, gameShip.getVector().rotationInDegrees, Triangular, STARSHIP_IMAGE_REF)
         facade.elements[gameShip.getId()] = starship
 
-//        val starship2 = ElementModel("hola", bullet.position.x, bullet.position.x, 40.0, 40.0, bullet.vector.rotationInDegrees, Triangular, null)
-//        facade.elements["hola"] = starship2
-
         facade.timeListenable.addEventListener(
             TimeListener(facade.elements, facade, gameManager)
         )
 
-        facade.collisionsListenable.addEventListener(CollisionListener())
+        facade.collisionsListenable.addEventListener(CollisionListener(gameManager, facade))
 
         keyTracker.keyPressedListenable.addEventListener(
             KeyPressedListener(gameManager),
@@ -101,7 +86,7 @@ class TimeListener(
     ) : EventListener<TimePassed> {
 
     override fun handle(event: TimePassed) {
-        gameManager.passTime(facade.elements)
+        gameManager.passTime(event.currentTimeInSeconds - event.secondsSinceLastTime, facade.elements)
         gameManager.addElements(facade.elements)
         gameManager.gameState.gameObjects.forEach {it ->
             elements.getValue(it.getId()).rotationInDegrees.set(it.getVector().rotationInDegrees)
@@ -111,18 +96,21 @@ class TimeListener(
     }
 }
 
-class CollisionListener() : EventListener<Collision> {
+class CollisionListener(
+    private val gameManager: GameManager,
+    private val facade: ElementsViewFacade,
+) : EventListener<Collision> {
     override fun handle(event: Collision) {
-        println("${event.element1Id} ${event.element2Id}")
+        gameManager.collision(event.element1Id, event.element2Id, facade.elements)
     }
 
 }
 
 class KeyPressedListener(
-        private var gameManager: GameManager,
+        private val gameManager: GameManager,
     ): EventListener<KeyPressed> {
     override fun handle(event: KeyPressed) {
-        event.currentPressedKeys.forEach { key -> gameManager.moveShip(key) }
+        event.currentPressedKeys.forEach { key -> gameManager.moveShip(1.0, key) }
     }
 }
 
@@ -131,13 +119,13 @@ class GameManager(
         private val keyMap: Map<KeyCode, ShipMovement>
     ) {
 
-    fun moveShip(movement: KeyCode) {
+    fun moveShip(secondsPassed: Double, movement: KeyCode) {
         val shipMovement = keyMap.getValue(movement)
-        gameState = gameState.moveShip(shipMovement.id, shipMovement.movement)
+        gameState = gameState.moveShip(shipMovement.id, shipMovement.movement, secondsPassed)
     }
 
-    fun passTime(elements: MutableMap<String, ElementModel>) {
-      val newGameState = gameState.move()
+    fun passTime(secondsPassed: Double, elements: MutableMap<String, ElementModel>) {
+      val newGameState = gameState.move(secondsPassed)
       val removedGameObjects = gameState.gameObjects.filter { obj -> !newGameState.gameObjects.any { newObj -> newObj.getId() == obj.getId()} }
       removedGameObjects.forEach { it -> elements.remove(it.getId()) }
       gameState = newGameState
@@ -146,6 +134,13 @@ class GameManager(
     fun addElements(elements: MutableMap<String, ElementModel>) {
         val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
         newElements.forEach { elements[it.getId()] = elementToUI(it) }
+    }
+
+    fun collision(from: String, to: String,  elements: MutableMap<String, ElementModel>) {
+        val newGameState = gameState.collision(from, to)
+        val removedGameObjects = gameState.gameObjects.filter { obj -> !newGameState.gameObjects.any { newObj -> newObj.getId() == obj.getId()} }
+        removedGameObjects.forEach { it -> elements.remove(it.getId()) }
+        gameState = newGameState
     }
 
     private fun elementToUI(element: Collidable): ElementModel {

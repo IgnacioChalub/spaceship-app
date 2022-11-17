@@ -1,5 +1,6 @@
 package edu.austral.ingsis.starships.model
 
+import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -24,14 +25,22 @@ class Ship(
         return Ship(id, remainingLives, position, Vector(vector.rotationInDegrees, newSpeed))
     }
 
-    override fun move(gameWidth: Double, gameHeight: Double): Ship {
+    fun shoot(): Bullet {
 
-        val xPosition = position.x + vector.speed * -sin(Math.toRadians(vector.rotationInDegrees))
-        val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees))
+        val xPosition = position.x + 50 * -sin(Math.toRadians(vector.rotationInDegrees))
+        val yPosition = position.y + 50 * cos(Math.toRadians(vector.rotationInDegrees))
+
+        return Bullet(UUID.randomUUID().toString(), Position(xPosition, yPosition), Vector(vector.rotationInDegrees,3.0), 10.0)
+    }
+
+    override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Ship {
+
+        val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000)
+        val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000
 
         val newPosition = if ( xPosition < gameWidth && xPosition > 0 && yPosition < gameHeight && yPosition > 0 ) {
             Position(xPosition, yPosition)
-        } else { Position(Math.random()*gameWidth, Math.random()*gameHeight)}
+        } else { Position(Math.random()*gameWidth, Math.random()*gameHeight) }
 
         return Ship(id, remainingLives, newPosition, Vector(vector.rotationInDegrees, vector.speed))
     }
@@ -41,5 +50,23 @@ class Ship(
     override fun getPosition(): Position = position
 
     override fun getVector(): Vector = vector
+
+    override fun collide(collidable: Collidable): Optional<Collidable> {
+        return when (collidable) {
+            is Bullet -> {
+                if(remainingLives-1 <= 0) return Optional.empty<Collidable>()
+                return Optional.of(Ship(id,remainingLives-1, position, vector))
+            }
+            is Asteroid -> {
+                if(remainingLives-1 <= 0) return Optional.empty<Collidable>()
+                return Optional.of(Ship(id,remainingLives-1, Position(position.x+40, position.y+40), vector))
+            }
+            is Ship -> {
+                if(remainingLives-1 <= 0) return Optional.empty<Collidable>()
+                return Optional.of(Ship(id,remainingLives-1, Position(position.x+20, position.y+20), vector))
+            }
+        }
+    }
+
 
 }

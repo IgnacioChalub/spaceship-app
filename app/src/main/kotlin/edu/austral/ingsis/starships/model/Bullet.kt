@@ -1,20 +1,22 @@
 package edu.austral.ingsis.starships.model
 
+import java.util.Optional
 import kotlin.math.cos
 import kotlin.math.sin
 
 class Bullet(
     private val id: String,
     private val position: Position,
-    private val vector: Vector
+    private val vector: Vector,
+    private val damage: Double
 ) : Collidable {
 
-    override fun move(gameWidth: Double, gameHeight: Double): Bullet {
+    override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Bullet {
         val newPosition = Position(
-            position.x + vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)),
-            position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees))
+            position.x + vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000,
+            position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000
         )
-        return Bullet(id, newPosition, vector)
+        return Bullet(id, newPosition, vector, damage)
     }
 
     override fun getId(): String = id
@@ -22,5 +24,11 @@ class Bullet(
     override fun getPosition(): Position = position
 
     override fun getVector(): Vector = vector
+
+    override fun collide(collidable: Collidable): Optional<Collidable> {
+        return Optional.empty<Collidable>()
+    }
+
+    fun getDamage(): Double = damage
 
 }
