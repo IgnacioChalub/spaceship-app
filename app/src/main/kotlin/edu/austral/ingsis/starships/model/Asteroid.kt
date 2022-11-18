@@ -12,8 +12,8 @@ class Asteroid(
 ) : Collidable {
 
     override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Collidable {
-        val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000)
-        val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000
+        val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150)
+        val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150
 
         return Asteroid(id, Position(xPosition, yPosition), Vector(vector.rotationInDegrees, vector.speed), remainingDamageSustained)
     }

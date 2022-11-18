@@ -35,8 +35,8 @@ class Ship(
 
     override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Ship {
 
-        val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000)
-        val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000
+        val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150)
+        val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150
 
         val newPosition = if ( xPosition < gameWidth && xPosition > 0 && yPosition < gameHeight && yPosition > 0 ) {
             Position(xPosition, yPosition)

@@ -86,7 +86,7 @@ class TimeListener(
     ) : EventListener<TimePassed> {
 
     override fun handle(event: TimePassed) {
-        gameManager.passTime(event.currentTimeInSeconds - event.secondsSinceLastTime, facade.elements)
+        gameManager.passTime(event.secondsSinceLastTime, facade.elements)
         gameManager.addElements(facade.elements)
         gameManager.gameState.gameObjects.forEach {it ->
             elements.getValue(it.getId()).rotationInDegrees.set(it.getVector().rotationInDegrees)

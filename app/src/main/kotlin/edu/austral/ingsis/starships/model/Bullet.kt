@@ -13,8 +13,8 @@ class Bullet(
 
     override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Bullet {
         val newPosition = Position(
-            position.x + vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000,
-            position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed / 100000
+            position.x + vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150,
+            position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150
         )
         return Bullet(id, newPosition, vector, damage)
     }
