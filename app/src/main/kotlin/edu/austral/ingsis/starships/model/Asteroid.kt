@@ -4,7 +4,7 @@ import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Asteroid(
+data class Asteroid(
     private val id: String,
     private val position: Position,
     private val vector: Vector,

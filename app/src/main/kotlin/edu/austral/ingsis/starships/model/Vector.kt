@@ -1,6 +1,6 @@
 package edu.austral.ingsis.starships.model
 
-class Vector(
+data class Vector(
     val rotationInDegrees: Double,
     val speed: Double
 ) {

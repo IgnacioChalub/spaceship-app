@@ -1,8 +1,7 @@
 package edu.austral.ingsis.starships.model
 
-class Position(
+data class Position(
     val x: Double,
     val y: Double
 ){
-
 }

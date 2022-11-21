@@ -5,5 +5,6 @@ enum class KeyMovement() {
     TURN_LEFT,
     TURN_RIGHT,
     STOP,
-    SHOOT
+    SHOOT,
+    PAUSE
 }

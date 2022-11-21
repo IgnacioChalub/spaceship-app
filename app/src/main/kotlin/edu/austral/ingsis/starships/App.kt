@@ -34,7 +34,8 @@ class Starships() : Application() {
         val gameState = GameState(
             800.0,
             800.0,
-            listOf(gameShip)
+            listOf(gameShip),
+            State.RUN
         )
 
         val gameManager = GameManager(
@@ -44,7 +45,8 @@ class Starships() : Application() {
                 Pair(KeyCode.DOWN, ShipMovement(gameShip.getId(), KeyMovement.STOP)),
                 Pair(KeyCode.LEFT, ShipMovement(gameShip.getId(), KeyMovement.TURN_LEFT)),
                 Pair(KeyCode.RIGHT, ShipMovement(gameShip.getId(), KeyMovement.TURN_RIGHT)),
-                Pair(KeyCode.SPACE, ShipMovement(gameShip.getId(), KeyMovement.SHOOT))
+                Pair(KeyCode.SPACE, ShipMovement(gameShip.getId(), KeyMovement.SHOOT)),
+                Pair(KeyCode.P, ShipMovement(gameShip.getId(), KeyMovement.PAUSE))
             )
         )
 

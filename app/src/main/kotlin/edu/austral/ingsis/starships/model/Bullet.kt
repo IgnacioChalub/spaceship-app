@@ -4,7 +4,7 @@ import java.util.Optional
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Bullet(
+data class Bullet(
     private val id: String,
     private val position: Position,
     private val vector: Vector,
