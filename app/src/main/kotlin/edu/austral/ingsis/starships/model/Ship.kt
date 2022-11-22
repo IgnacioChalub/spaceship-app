@@ -4,25 +4,25 @@ import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Ship(
+data class Ship(
     private val id: String,
     val remainingLives: Int,
     private val position: Position,
     private val vector: Vector,
 ) : Collidable {
 
-    fun turnLeft(): Ship = Ship(id, remainingLives, position, Vector(vector.rotationInDegrees-15, vector.speed))
+    fun turnLeft(secondsPassed: Double): Ship = this.copy(vector = Vector(vector.rotationInDegrees-(200*secondsPassed), vector.speed))
 
-    fun turnRight(): Ship = Ship(id, remainingLives, position, Vector(vector.rotationInDegrees+15, vector.speed))
+    fun turnRight(secondsPassed: Double): Ship = this.copy(vector = Vector(vector.rotationInDegrees+(200*secondsPassed), vector.speed))
 
     fun accelerate(): Ship {
         val newSpeed = if (vector.speed == 1.0) vector.speed else vector.speed + 1
-        return Ship(id, remainingLives, position, Vector(vector.rotationInDegrees, newSpeed))
+        return this.copy(vector = Vector(vector.rotationInDegrees, newSpeed))
     }
 
     fun decelerate(): Ship {
         val newSpeed = if (vector.speed == -1.0) vector.speed else vector.speed - 1
-        return Ship(id, remainingLives, position, Vector(vector.rotationInDegrees, newSpeed))
+        return this.copy(vector =  Vector(vector.rotationInDegrees, newSpeed))
     }
 
     fun shoot(): Bullet {
@@ -42,7 +42,7 @@ class Ship(
             Position(xPosition, yPosition)
         } else { Position(Math.random()*gameWidth, Math.random()*gameHeight) }
 
-        return Ship(id, remainingLives, newPosition, Vector(vector.rotationInDegrees, vector.speed))
+        return this.copy(position = newPosition)
     }
 
     override fun getId(): String = id
@@ -52,18 +52,18 @@ class Ship(
     override fun getVector(): Vector = vector
 
     override fun collide(collidable: Collidable): Optional<Collidable> {
-        return when (collidable) {
+        when (collidable) {
             is Bullet -> {
                 if(remainingLives-1 <= 0) return Optional.empty<Collidable>()
-                return Optional.of(Ship(id,remainingLives-1, position, vector))
+                return Optional.of(this.copy(remainingLives = remainingLives-1))
             }
             is Asteroid -> {
                 if(remainingLives-1 <= 0) return Optional.empty<Collidable>()
-                return Optional.of(Ship(id,remainingLives-1, Position(position.x+40, position.y+40), vector))
+                return Optional.of(this.copy(remainingLives = remainingLives-1, position = Position(position.x+40, position.y+40)))
             }
             is Ship -> {
                 if(remainingLives-1 <= 0) return Optional.empty<Collidable>()
-                return Optional.of(Ship(id,remainingLives-1, Position(position.x+20, position.y+20), vector))
+                return Optional.of(this.copy(remainingLives = remainingLives-1, position = Position(position.x+20, position.y+20)))
             }
         }
     }

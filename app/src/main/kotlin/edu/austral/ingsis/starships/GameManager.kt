@@ -1,0 +1,105 @@
+package edu.austral.ingsis.starships
+
+import edu.austral.ingsis.starships.model.*
+import edu.austral.ingsis.starships.ui.ElementColliderType
+import edu.austral.ingsis.starships.ui.ElementModel
+import edu.austral.ingsis.starships.ui.ImageRef
+import javafx.scene.input.KeyCode
+
+class GameManager(
+    var gameState: GameState,
+    private val keyMap: Map<KeyCode, ShipMovement>,
+    private val keysPressed: MutableList<KeyCode>
+    ) {
+
+    fun moveShip(movement: KeyCode, secondsPassed: Double) {
+        val shipMovement = keyMap.getValue(movement) as ShipMovement
+        gameState = gameState.keyAction(shipMovement.id, shipMovement.movement, secondsPassed)
+    }
+
+    fun passTime(secondsPassed: Double, elements: MutableMap<String, ElementModel>) {
+      keysPressed.forEach {it -> moveShip(it, secondsPassed)}
+      val newGameState = gameState.move(secondsPassed)
+      val removedGameObjects = gameState.gameObjects.filter { obj -> !newGameState.gameObjects.any { newObj -> newObj.getId() == obj.getId()} }
+      removedGameObjects.forEach { it -> elements.remove(it.getId()) }
+      gameState = newGameState
+    }
+
+    fun addElements(elements: MutableMap<String, ElementModel>) {
+        val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
+        newElements.forEach { elements[it.getId()] = elementToUI(it) }
+    }
+
+    fun collision(from: String, to: String,  elements: MutableMap<String, ElementModel>) {
+        val newGameState = gameState.collision(from, to)
+        val removedGameObjects = gameState.gameObjects.filter { obj -> !newGameState.gameObjects.any { newObj -> newObj.getId() == obj.getId()} }
+        removedGameObjects.forEach { it -> elements.remove(it.getId()) }
+        gameState = newGameState
+    }
+
+    private fun elementToUI(element: Collidable): ElementModel {
+        return when (element) {
+            is Ship -> starshipToStarshipUI(element)
+            is Asteroid -> asteroidToAsteroidUI(element)
+            is Bullet -> bulletToBulletUI(element)
+        }
+    }
+
+    private fun starshipToStarshipUI(ship: Ship): ElementModel {
+        return ElementModel(
+            ship.getId(),
+            ship.getPosition().x,
+            ship.getPosition().y,
+            60.0,
+            70.0,
+            ship.getVector().rotationInDegrees,
+            ElementColliderType.Triangular,
+            ImageRef("spaceship", 60.0, 70.0)
+        )
+    }
+
+    private fun asteroidToAsteroidUI(asteroid: Asteroid): ElementModel {
+        return ElementModel(
+            asteroid.getId(),
+            asteroid.getPosition().x,
+            asteroid.getPosition().y,
+            50.0,
+            50.0,
+            asteroid.getVector().rotationInDegrees,
+            ElementColliderType.Elliptical,
+            null
+        )
+    }
+
+    private fun bulletToBulletUI(bullet: Bullet): ElementModel {
+        return ElementModel(
+            bullet.getId(),
+            bullet.getPosition().x,
+            bullet.getPosition().y,
+            10.0,
+            5.0,
+            bullet.getVector().rotationInDegrees,
+            ElementColliderType.Rectangular,
+            null
+        )
+    }
+
+    fun pressKey(key: KeyCode) {
+        when (keyMap.getValue(key).movementType) {
+            MovementType.CLICK -> moveShip(key, 1.0)
+            MovementType.MAINTAIN -> if(!keysPressed.contains(key)) { keysPressed.add(key) }
+        }
+    }
+
+    fun releaseKey(key: KeyCode) {
+        keysPressed.remove(key)
+    }
+
+}
+
+data class ShipMovement(val id: String, val movement: KeyAction, val movementType: MovementType)
+
+enum class MovementType {
+    CLICK,
+    MAINTAIN
+}
