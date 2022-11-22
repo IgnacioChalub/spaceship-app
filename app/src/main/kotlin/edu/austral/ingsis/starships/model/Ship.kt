@@ -9,6 +9,7 @@ data class Ship(
     val remainingLives: Int,
     private val position: Position,
     private val vector: Vector,
+    private val weapon: Weapon
 ) : Collidable {
 
     fun turnLeft(secondsPassed: Double): Ship = this.copy(vector = Vector(vector.rotationInDegrees-(200*secondsPassed), vector.speed))
@@ -26,11 +27,7 @@ data class Ship(
     }
 
     fun shoot(): Bullet {
-
-        val xPosition = position.x + 50 * -sin(Math.toRadians(vector.rotationInDegrees))
-        val yPosition = position.y + 50 * cos(Math.toRadians(vector.rotationInDegrees))
-
-        return Bullet(UUID.randomUUID().toString(), Position(xPosition, yPosition), Vector(vector.rotationInDegrees,3.0), 10.0)
+        return weapon.shoot(position, vector)
     }
 
     override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Ship {

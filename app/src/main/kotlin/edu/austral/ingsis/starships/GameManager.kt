@@ -38,7 +38,7 @@ class GameManager(
         gameState = newGameState
     }
 
-    private fun elementToUI(element: Collidable): ElementModel {
+    fun elementToUI(element: Collidable): ElementModel {
         return when (element) {
             is Ship -> starshipToStarshipUI(element)
             is Asteroid -> asteroidToAsteroidUI(element)
@@ -51,11 +51,11 @@ class GameManager(
             ship.getId(),
             ship.getPosition().x,
             ship.getPosition().y,
-            60.0,
-            70.0,
+            40.0,
+            40.0,
             ship.getVector().rotationInDegrees,
             ElementColliderType.Triangular,
-            ImageRef("spaceship", 60.0, 70.0)
+            ImageRef("starship", 60.0, 70.0)
         )
     }
 
