@@ -1,8 +1,8 @@
 package edu.austral.ingsis.starships.model
 
-sealed interface KeyAction
+//sealed interface KeyAction
 
-enum class KeyMovement : KeyAction {
+enum class KeyMovement {
     ACCELERATE,
     TURN_LEFT,
     TURN_RIGHT,
@@ -10,6 +10,6 @@ enum class KeyMovement : KeyAction {
     SHOOT,
 }
 
-enum class MenuAction : KeyAction {
+enum class KeyMenuAction {
     TOGGLE_PAUSE
 }

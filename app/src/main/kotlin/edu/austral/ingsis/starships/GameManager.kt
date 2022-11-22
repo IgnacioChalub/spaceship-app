@@ -8,13 +8,14 @@ import javafx.scene.input.KeyCode
 
 class GameManager(
     var gameState: GameState,
-    private val keyMap: Map<KeyCode, ShipMovement>,
+    private val playerKeyMap: Map<KeyCode, ShipMovement>,
+    private val gameKeyMap: Map<KeyCode, MenuAction>,
     private val keysPressed: MutableList<KeyCode>
     ) {
 
-    fun moveShip(movement: KeyCode, secondsPassed: Double) {
-        val shipMovement = keyMap.getValue(movement) as ShipMovement
-        gameState = gameState.keyAction(shipMovement.id, shipMovement.movement, secondsPassed)
+    private fun moveShip(movement: KeyCode, secondsPassed: Double) {
+        val shipMovement = playerKeyMap.getValue(movement)
+        gameState = gameState.moveShip(shipMovement.id, shipMovement.movement, secondsPassed)
     }
 
     fun passTime(secondsPassed: Double, elements: MutableMap<String, ElementModel>) {
@@ -85,9 +86,22 @@ class GameManager(
     }
 
     fun pressKey(key: KeyCode) {
-        when (keyMap.getValue(key).movementType) {
+        when (val action = if (playerKeyMap.containsKey(key)) { playerKeyMap.getValue(key) } else { gameKeyMap.getValue(key) }) {
+            is ShipMovement -> manageShipMovement(key)
+            is MenuAction -> manageMenuAction(action, key)
+        }
+    }
+
+    private fun manageShipMovement(key: KeyCode) {
+        when (playerKeyMap.getValue(key).movementType) {
             MovementType.CLICK -> moveShip(key, 1.0)
             MovementType.MAINTAIN -> if(!keysPressed.contains(key)) { keysPressed.add(key) }
+        }
+    }
+
+    private fun manageMenuAction(menuAction: MenuAction, key: KeyCode) {
+        when (menuAction.action) {
+            KeyMenuAction.TOGGLE_PAUSE -> gameState = gameState.toggleState()
         }
     }
 
@@ -97,7 +111,8 @@ class GameManager(
 
 }
 
-data class ShipMovement(val id: String, val movement: KeyAction, val movementType: MovementType)
+data class ShipMovement(val id: String, val movement: KeyMovement, val movementType: MovementType)
+data class MenuAction(val action: KeyMenuAction)
 
 enum class MovementType {
     CLICK,

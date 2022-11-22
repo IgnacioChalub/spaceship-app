@@ -10,14 +10,7 @@ data class GameState(
     val state: State
 ) {
 
-    fun keyAction(id: String, movement: KeyAction, secondsPassed: Double): GameState {
-        return when (movement) {
-            is KeyMovement -> moveShip(id, movement, secondsPassed)
-            is MenuAction -> toggleState()
-        }
-    }
-
-    private fun moveShip(id: String, movement: KeyMovement, secondsPassed: Double): GameState {
+    fun moveShip(id: String, movement: KeyMovement, secondsPassed: Double): GameState {
         if(state == State.PAUSE) {
             return this.copy()
         }
@@ -32,7 +25,7 @@ data class GameState(
         }
     }
 
-    private fun toggleState(): GameState {
+    fun toggleState(): GameState {
         val newState = if(state == State.PAUSE) {
             State.RUN
         }else {

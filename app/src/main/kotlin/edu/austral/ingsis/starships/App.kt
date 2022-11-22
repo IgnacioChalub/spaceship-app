@@ -58,7 +58,9 @@ class Starships() : Application() {
                 Pair(KeyCode.A, ShipMovement(gameShip2.getId(), KeyMovement.TURN_LEFT, MovementType.MAINTAIN)),
                 Pair(KeyCode.D, ShipMovement(gameShip2.getId(), KeyMovement.TURN_RIGHT, MovementType.MAINTAIN)),
                 Pair(KeyCode.E, ShipMovement(gameShip2.getId(), KeyMovement.SHOOT, MovementType.CLICK)),
-                Pair(KeyCode.P, ShipMovement(gameShip.getId(), MenuAction.TOGGLE_PAUSE, MovementType.CLICK))
+            ),
+            mapOf(
+                Pair(KeyCode.P, MenuAction(KeyMenuAction.TOGGLE_PAUSE))
             ),
             mutableListOf()
         )
