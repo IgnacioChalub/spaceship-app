@@ -16,7 +16,7 @@ data class Bullet(
             position.x + vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150,
             position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150
         )
-        return Bullet(id, newPosition, vector, damage)
+        return this.copy(position = newPosition)
     }
 
     override fun getId(): String = id

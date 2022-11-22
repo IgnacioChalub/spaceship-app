@@ -14,8 +14,9 @@ data class Asteroid(
     override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Collidable {
         val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150)
         val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150
-
-        return Asteroid(id, Position(xPosition, yPosition), Vector(vector.rotationInDegrees, vector.speed), remainingDamageSustained)
+        return this.copy(
+            position = Position(xPosition, yPosition),
+        )
     }
 
     override fun getId(): String = id
@@ -28,10 +29,10 @@ data class Asteroid(
         return when (collidable) {
             is Bullet -> {
                 if (remainingDamageSustained-collidable.getDamage() <= 0) return Optional.empty<Collidable>()
-                return Optional.of(Asteroid(id, position, vector, remainingDamageSustained - collidable.getDamage()))
+                return Optional.of(this.copy(remainingDamageSustained = remainingDamageSustained - collidable.getDamage()))
             }
-            is Asteroid -> Optional.of(this)
-            is Ship -> Optional.of(this)
+            is Asteroid -> Optional.of(this.copy())
+            is Ship -> Optional.of(this.copy())
         }
     }
 

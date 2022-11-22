@@ -9,7 +9,7 @@ data class Ship(
     val remainingLives: Int,
     private val position: Position,
     private val vector: Vector,
-    private val weapon: Weapon
+    private val weapon: Weapon,
 ) : Collidable {
 
     fun turnLeft(secondsPassed: Double): Ship = this.copy(vector = Vector(vector.rotationInDegrees-(200*secondsPassed), vector.speed))

@@ -4,6 +4,7 @@ import edu.austral.ingsis.starships.model.*
 import edu.austral.ingsis.starships.ui.ElementColliderType
 import edu.austral.ingsis.starships.ui.ElementModel
 import edu.austral.ingsis.starships.ui.ImageRef
+import javafx.scene.control.Label
 import javafx.scene.input.KeyCode
 
 class GameManager(
@@ -27,8 +28,9 @@ class GameManager(
     }
 
     fun addElements(elements: MutableMap<String, ElementModel>) {
-        val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
-        newElements.forEach { elements[it.getId()] = elementToUI(it) }
+//        val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
+//        newElements.forEach { elements[it.getId()] = elementToUI(it) }
+        gameState.gameObjects.forEach { elements[it.getId()] = elementToUI(it) }
     }
 
     fun collision(from: String, to: String,  elements: MutableMap<String, ElementModel>) {
@@ -64,8 +66,8 @@ class GameManager(
             asteroid.getId(),
             asteroid.getPosition().x,
             asteroid.getPosition().y,
-            50.0,
-            50.0,
+            asteroid.remainingDamageSustained*4,
+            asteroid.remainingDamageSustained*4,
             asteroid.getVector().rotationInDegrees,
             ElementColliderType.Elliptical,
             null
@@ -107,6 +109,16 @@ class GameManager(
 
     fun releaseKey(key: KeyCode) {
         keysPressed.remove(key)
+    }
+
+    fun updateLives(id: String): Label {
+        val ship = gameState.gameObjects.find { it ->
+            it.getId() == id
+        }
+        return when (ship) {
+            is Ship -> Label(ship.remainingLives.toString())
+            else -> return Label("")
+        }
     }
 
 }
