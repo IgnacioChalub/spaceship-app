@@ -11,6 +11,17 @@ data class Asteroid(
     val remainingDamageSustained: Double
 ) : Collidable {
 
+    companion object Factory {
+        fun new(gameWidth: Double, gameHeight: Double): Asteroid {
+            return Asteroid(
+                UUID.randomUUID().toString(),
+                Position(Math.random()*gameWidth, Math.random()*gameHeight),
+                Vector(Math.random()*359, 0.6),
+                20.0
+            )
+        }
+    }
+
     override fun move(secondsPassed: Double, gameWidth: Double, gameHeight: Double): Collidable {
         val xPosition = position.x + (vector.speed * -sin(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150)
         val yPosition = position.y + vector.speed * cos(Math.toRadians(vector.rotationInDegrees)) * secondsPassed * 150

@@ -53,7 +53,7 @@ class ClassicGamesFactory {
             3,
             Position(100.0, 100.0),
             Vector(350.0, 0.0),
-            ClassicWeapon()
+            DoubleWeapon()
         )
 
         val gameState = GameState(

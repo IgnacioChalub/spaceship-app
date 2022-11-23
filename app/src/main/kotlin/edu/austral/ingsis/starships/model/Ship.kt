@@ -1,6 +1,7 @@
 package edu.austral.ingsis.starships.model
 
 import java.util.*
+import kotlin.collections.List
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -26,7 +27,7 @@ data class Ship(
         return this.copy(vector =  Vector(vector.rotationInDegrees, newSpeed))
     }
 
-    fun shoot(): Bullet {
+    fun shoot(): List<Bullet> {
         return weapon.shoot(position, vector)
     }
 

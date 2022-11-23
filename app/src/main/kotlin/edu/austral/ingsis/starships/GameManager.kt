@@ -28,9 +28,9 @@ class GameManager(
     }
 
     fun addElements(elements: MutableMap<String, ElementModel>) {
-//        val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
-//        newElements.forEach { elements[it.getId()] = elementToUI(it) }
-        gameState.gameObjects.forEach { elements[it.getId()] = elementToUI(it) }
+        val newElements = gameState.gameObjects.filter { !elements.keys.contains(it.getId()) }
+        newElements.forEach { elements[it.getId()] = elementToUI(it) }
+//        gameState.gameObjects.forEach { elements[it.getId()] = elementToUI(it) }
     }
 
     fun collision(from: String, to: String,  elements: MutableMap<String, ElementModel>) {
@@ -66,11 +66,11 @@ class GameManager(
             asteroid.getId(),
             asteroid.getPosition().x,
             asteroid.getPosition().y,
-            asteroid.remainingDamageSustained*4,
-            asteroid.remainingDamageSustained*4,
+            100.0,
+            100.0,
             asteroid.getVector().rotationInDegrees,
             ElementColliderType.Elliptical,
-            null
+            ImageRef("asteroid", 60.0, 70.0)
         )
     }
 
@@ -79,11 +79,11 @@ class GameManager(
             bullet.getId(),
             bullet.getPosition().x,
             bullet.getPosition().y,
-            10.0,
-            5.0,
+            20.0,
+            20.0,
             bullet.getVector().rotationInDegrees,
             ElementColliderType.Rectangular,
-            null
+            ImageRef("bullet", 60.0, 70.0)
         )
     }
 

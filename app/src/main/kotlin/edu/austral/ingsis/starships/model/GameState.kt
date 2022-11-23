@@ -1,8 +1,5 @@
 package edu.austral.ingsis.starships.model
 
-import java.util.UUID
-
-
 data class GameState(
     val gameWidth: Double,
     val gameHeight: Double,
@@ -14,13 +11,20 @@ data class GameState(
         if(state == State.PAUSE) {
             return this.copy()
         }
-        val ship = (gameObjects.find { it ->  it.getId() == id} as Ship) ?: throw Error("ship not found")
-        val newShips = gameObjects.filter { it ->  it.getId() != id}
+        val ship = gameObjects.find { it ->  it.getId() == id} ?: throw Error("ship with id $id not found")
+        val remainingObjects = gameObjects.filter { it ->  it.getId() != id}
+        return when (ship) {
+            is Ship -> doMovement(ship, secondsPassed, movement, remainingObjects)
+            else -> this.copy()
+        }
+    }
+
+    private fun doMovement(ship: Ship, secondsPassed: Double, movement: KeyMovement, remainingObjects: List<Collidable>): GameState {
         return when(movement) {
-            KeyMovement.TURN_RIGHT -> this.copy(gameObjects = newShips.plus(ship.turnRight(secondsPassed)))
-            KeyMovement.TURN_LEFT -> this.copy(gameObjects = newShips.plus(ship.turnLeft(secondsPassed)))
-            KeyMovement.ACCELERATE -> this.copy(gameObjects = newShips.plus(ship.accelerate()))
-            KeyMovement.STOP -> this.copy(gameObjects = newShips.plus(ship.decelerate()))
+            KeyMovement.TURN_RIGHT -> this.copy(gameObjects = remainingObjects.plus(ship.turnRight(secondsPassed)))
+            KeyMovement.TURN_LEFT -> this.copy(gameObjects = remainingObjects.plus(ship.turnLeft(secondsPassed)))
+            KeyMovement.ACCELERATE -> this.copy(gameObjects = remainingObjects.plus(ship.accelerate()))
+            KeyMovement.STOP -> this.copy(gameObjects = remainingObjects.plus(ship.decelerate()))
             KeyMovement.SHOOT -> this.copy(gameObjects = gameObjects.plus(ship.shoot()))
         }
     }
@@ -43,24 +47,16 @@ data class GameState(
 
     private fun manageGameObjects(secondsPassed: Double): List<Collidable> {
         val newObjects = gameObjects
-            .map { it ->
-                it.move(secondsPassed, gameWidth, gameHeight)
-            }.filter { it ->
-                it.getPosition().x < gameWidth && it.getPosition().y < gameHeight && it.getPosition().x > 0.0 && it.getPosition().y > 0
-            }
+            .map { it -> it.move(secondsPassed, gameWidth, gameHeight) }.filter { it -> isOutOfBounds(it) }
         return if(Math.random()*100 < 99.5) {
             newObjects
         } else {
-            newObjects
-                .plus(
-                    Asteroid(
-                        UUID.randomUUID().toString(),
-                        Position(Math.random()*gameWidth, Math.random()*gameHeight),
-                        Vector(Math.random()*359, 0.6),
-                        20.0
-                    )
-                )
+            newObjects.plus(Asteroid.new(gameWidth, gameHeight))
         }
+    }
+
+    private fun isOutOfBounds(it: Collidable): Boolean {
+        return it.getPosition().x < gameWidth && it.getPosition().y < gameHeight && it.getPosition().x > 0.0 && it.getPosition().y > 0
     }
 
     fun collision(from: String, to: String): GameState {

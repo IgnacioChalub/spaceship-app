@@ -65,7 +65,7 @@ class Starships() : Application() {
         primaryStage.width = 800.0
 
         facade.start()
-//        facade.showCollider.set(false)
+        facade.showCollider.set(false)
         keyTracker.start()
         primaryStage.show()
 

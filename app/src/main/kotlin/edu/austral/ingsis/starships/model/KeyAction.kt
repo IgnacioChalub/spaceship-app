@@ -1,7 +1,5 @@
 package edu.austral.ingsis.starships.model
 
-//sealed interface KeyAction
-
 enum class KeyMovement {
     ACCELERATE,
     TURN_LEFT,
